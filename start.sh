@@ -32,26 +32,30 @@ echo " Starting Kaggle Local LLM Proxy Pipeline"
 echo "=========================================="
 
 echo "=== Step 1: Checking / Creating Virtual Environment ==="
-if [ ! -d "venv" ]; then
-    echo "[VENV] Virtual environment not found. Creating 'venv'..."
-    python3 -m venv venv
-    if [ $? -eq 0 ]; then
-        echo "[VENV] SUCCESS: Virtual environment 'venv' created successfully."
+VENV_ACTIVE=0
+
+# Detect Kaggle or any environment where ensurepip is disabled (venv won't work)
+if python3 -c "import ensurepip" 2>/dev/null; then
+    # ensurepip is available — safe to create a venv
+    if [ ! -d "venv" ]; then
+        echo "[VENV] Virtual environment not found. Creating 'venv'..."
+        if python3 -m venv venv; then
+            echo "[VENV] SUCCESS: Virtual environment 'venv' created successfully."
+        else
+            echo "[VENV] WARNING: Failed to create virtual environment. Falling back to system pip."
+        fi
     else
-        echo "[VENV] FAILURE: Failed to create virtual environment."
-        exit 1
+        echo "[VENV] SUCCESS: Virtual environment 'venv' already exists."
+    fi
+
+    if [ -f "venv/bin/activate" ]; then
+        source venv/bin/activate
+        echo "[VENV] SUCCESS: Virtual environment activated."
+        VENV_ACTIVE=1
     fi
 else
-    echo "[VENV] SUCCESS: Virtual environment 'venv' already exists."
-fi
-
-# Activate venv
-source venv/bin/activate
-if [ $? -eq 0 ]; then
-    echo "[VENV] SUCCESS: Virtual environment activated."
-else
-    echo "[VENV] FAILURE: Failed to activate virtual environment."
-    exit 1
+    echo "[VENV] INFO: ensurepip not available (Kaggle / managed environment detected)."
+    echo "[VENV] INFO: Skipping venv creation — using system pip directly."
 fi
 
 echo "=== Step 2: Installing Dependencies ==="
