@@ -25,8 +25,7 @@ def main():
         # 4. Start Tunnel
         start_bore_tunnel()
 
-        print("[System] SUCCESS: All services initialized successfully. Tailing logs below...
-")
+        print("[System] SUCCESS: All services initialized successfully. Tailing logs below...\n")
         
         # Tail Log File to keep session alive
         with open(config.LOG_FILE, "a"):
@@ -42,14 +41,12 @@ def main():
                     time.sleep(0.3)
 
     except KeyboardInterrupt:
-        print("
-[System] Shutting down services cleanly...")
+        print("\n[System] Shutting down services cleanly...")
         litellm_proc.terminate()
         ollama_proc.terminate()
         sys.exit(0)
     except Exception as e:
-        print(f"
-[System] FAILURE: Project startup failed with error: {e}")
+        print(f"\n[System] FAILURE: Project startup failed with error: {e}")
         sys.exit(1)
 
 if __name__ == "__main__":
