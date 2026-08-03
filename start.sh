@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -e
+set -eo pipefail
 
 # Configurable GitHub Repository URL
 REPO_URL="${REPO_URL:-https://github.com/shah-ashish/empty.git}"
@@ -74,22 +74,22 @@ else
     exit 1
 fi
 
-
+echo "=== Step 3: Checking System Utilities ==="
 # Check Ollama
 if ! command -v ollama &> /dev/null; then
-    echo "[Ollama] Downloading Ollama binary directly..."
-    if curl -fsSL -o /usr/local/bin/ollama \
-        https://github.com/ollama/ollama/releases/latest/download/ollama-linux-amd64 \
-        && chmod +x /usr/local/bin/ollama; then
+    echo "[Ollama] Downloading and installing Ollama (this may take a minute)..."
+    OLLAMA_URL="https://github.com/ollama/ollama/releases/latest/download/ollama-linux-amd64.tar.zst"
+    # Use zstd | tar pipeline — avoids needing 'tar --zstd' flag (unsupported on Kaggle)
+    if curl -fsSL "$OLLAMA_URL" | zstd -d | tar -x -C /usr/local/; then
+        chmod +x /usr/local/bin/ollama
         echo "[Ollama] SUCCESS: Ollama installed successfully."
     else
-        echo "[Ollama] FAILURE: Failed to download Ollama binary."
+        echo "[Ollama] FAILURE: Failed to install Ollama."
         exit 1
     fi
 else
     echo "[Ollama] SUCCESS: Ollama CLI is already available."
 fi
-
 
 
 # Tunnel uses SSH (pre-installed on all Kaggle instances) — no extra tools needed.
