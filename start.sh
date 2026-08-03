@@ -34,28 +34,35 @@ echo "=========================================="
 echo "=== Step 1: Checking / Creating Virtual Environment ==="
 VENV_ACTIVE=0
 
-# Detect Kaggle or any environment where ensurepip is disabled (venv won't work)
-if python3 -c "import ensurepip" 2>/dev/null; then
-    # ensurepip is available — safe to create a venv
-    if [ ! -d "venv" ]; then
-        echo "[VENV] Virtual environment not found. Creating 'venv'..."
+# Check for a valid venv (directory AND activate script must both exist)
+if [ -d "venv" ] && [ ! -f "venv/bin/activate" ]; then
+    echo "[VENV] WARNING: Broken venv detected (no activate script). Removing and recreating..."
+    rm -rf venv
+fi
+
+# Try to create venv if it doesn't exist
+if [ ! -d "venv" ]; then
+    if python3 -c "import ensurepip" 2>/dev/null; then
+        echo "[VENV] Creating virtual environment 'venv'..."
         if python3 -m venv venv; then
-            echo "[VENV] SUCCESS: Virtual environment 'venv' created successfully."
+            echo "[VENV] SUCCESS: Virtual environment created."
         else
-            echo "[VENV] WARNING: Failed to create virtual environment. Falling back to system pip."
+            echo "[VENV] WARNING: venv creation failed. Falling back to system pip."
         fi
     else
-        echo "[VENV] SUCCESS: Virtual environment 'venv' already exists."
-    fi
-
-    if [ -f "venv/bin/activate" ]; then
-        source venv/bin/activate
-        echo "[VENV] SUCCESS: Virtual environment activated."
-        VENV_ACTIVE=1
+        echo "[VENV] INFO: ensurepip not available (Kaggle / managed environment). Skipping venv."
     fi
 else
-    echo "[VENV] INFO: ensurepip not available (Kaggle / managed environment detected)."
-    echo "[VENV] INFO: Skipping venv creation — using system pip directly."
+    echo "[VENV] SUCCESS: Virtual environment 'venv' already exists."
+fi
+
+# Activate venv only if it was successfully created
+if [ -f "venv/bin/activate" ]; then
+    source venv/bin/activate
+    echo "[VENV] SUCCESS: Virtual environment activated."
+    VENV_ACTIVE=1
+else
+    echo "[VENV] INFO: Using system pip (no venv active)."
 fi
 
 echo "=== Step 2: Installing Dependencies ==="
