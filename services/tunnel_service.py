@@ -35,9 +35,9 @@ def start_ssh_tunnel():
         try:
             with open(log_file, "r") as f:
                 content = f.read()
-                # Match both .link and .online domains, and free subdomain patterns
+                # Match any https URL containing 'pinggy' in the domain
                 match = re.search(
-                    r'(https://[a-zA-Z0-9\-]+\.a\.(?:free\.)?pinggy\.(?:link|online|io)(?::\d+)?)',
+                    r'(https://[a-zA-Z0-9\-]+\.(?:[a-zA-Z0-9\-]+\.)*pinggy[a-zA-Z0-9\-]*\.[a-z]+)',
                     content
                 )
                 if match:

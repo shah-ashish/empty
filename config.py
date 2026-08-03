@@ -3,7 +3,7 @@ import os
 # ==============================================================================
 # SINGLE SOURCE OF TRUTH FOR MODEL NAME & CONFIG
 # ==============================================================================
-MODEL_NAME = "qwen3.6:27b"  # Change model here
+MODEL_NAME = "qwen2.5-coder:7b"  # Change model here
 
 # Port Configurations
 OLLAMA_PORT = 11434
@@ -15,7 +15,7 @@ OLLAMA_BASE_URL = f"http://localhost:{OLLAMA_PORT}"
 LITELLM_BASE_URL = f"http://localhost:{LITELLM_PORT}"
 
 # LiteLLM Proxy Tuning
-NUM_CTX = 32768
+NUM_CTX = 16384
 TEMPERATURE = 0.3
 REPEAT_PENALTY = 1.15
 THINK = True
