@@ -4,7 +4,7 @@ import config
 from services.ollama_service import start_ollama, ensure_model_pulled
 from services.litellm_service import start_litellm
 from services.logging_proxy import start_logging_proxy
-from services.tunnel_service import start_bore_tunnel
+from services.tunnel_service import start_ssh_tunnel
 
 def main():
     print("==================================================")
@@ -23,7 +23,7 @@ def main():
         start_logging_proxy()
 
         # 4. Start Tunnel
-        start_bore_tunnel()
+        start_ssh_tunnel()
 
         print("[System] SUCCESS: All services initialized successfully. Tailing logs below...\n")
         

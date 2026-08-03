@@ -88,18 +88,10 @@ else
     echo "[Ollama] SUCCESS: Ollama CLI is already available."
 fi
 
-# Check bore tunnel tool
-if ! command -v bore &> /dev/null && [ ! -f "/usr/local/bin/bore" ]; then
-    echo "[Tunnel] Downloading bore CLI..."
-    if wget -q https://github.com/ekzhang/bore/releases/download/v0.6.0/bore-v0.6.0-x86_64-unknown-linux-musl.tar.gz -O /tmp/bore.tar.gz &&        tar -xf /tmp/bore.tar.gz -C /usr/local/bin &&        chmod +x /usr/local/bin/bore; then
-        echo "[Tunnel] SUCCESS: bore CLI downloaded and installed to /usr/local/bin."
-    else
-        echo "[Tunnel] FAILURE: Failed to download or install bore CLI."
-        exit 1
-    fi
-else
-    echo "[Tunnel] SUCCESS: bore CLI is already available."
-fi
+
+# Tunnel uses SSH (pre-installed on all Kaggle instances) — no extra tools needed.
+echo "[Tunnel] INFO: SSH tunnel will be established by main.py (no download required)."
+
 
 echo "=== Step 4: Starting Main Python Application ==="
 python main.py
