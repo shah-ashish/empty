@@ -1,5 +1,32 @@
 #!/usr/bin/env bash
 
+set -e
+
+# Configurable GitHub Repository URL
+REPO_URL="${REPO_URL:-https://github.com/shah-ashish/empty.git}"
+REPO_DIR="$(basename -s .git "$REPO_URL")"
+# 0. Clone repository if project files are not in current directory
+if [ ! -f "main.py" ]; then
+  if [ -d "$REPO_DIR" ]; then
+    echo "- Found existing project folder '$REPO_DIR'. Entering directory..."
+    cd "$REPO_DIR"
+  else
+    echo "- Cloning repository from $REPO_URL..."
+    git clone "$REPO_URL" "$REPO_DIR"
+    cd "$REPO_DIR"
+  fi
+fi
+
+# Pull latest code updates if git repo exists
+if [ -d ".git" ]; then
+  echo "- Checking for latest updates..."
+  git pull origin main 2>/dev/null || true
+fi
+
+
+
+
+
 echo "=========================================="
 echo " Starting Kaggle Local LLM Proxy Pipeline"
 echo "=========================================="
