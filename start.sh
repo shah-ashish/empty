@@ -74,26 +74,22 @@ else
     exit 1
 fi
 
-echo "=== Step 3: Checking System Utilities ==="
-# Ensure zstd is available (required by Ollama installer)
-if ! command -v zstd &> /dev/null; then
-    echo "[Deps] Installing zstd (required by Ollama installer)..."
-    apt-get install -y -q zstd > /dev/null 2>&1
-    echo "[Deps] SUCCESS: zstd installed."
-fi
 
 # Check Ollama
 if ! command -v ollama &> /dev/null; then
-    echo "[Ollama] Installing Ollama..."
-    if curl -fsSL https://ollama.com/install.sh | sh; then
+    echo "[Ollama] Downloading Ollama binary directly..."
+    if curl -fsSL -o /usr/local/bin/ollama \
+        https://github.com/ollama/ollama/releases/latest/download/ollama-linux-amd64 \
+        && chmod +x /usr/local/bin/ollama; then
         echo "[Ollama] SUCCESS: Ollama installed successfully."
     else
-        echo "[Ollama] FAILURE: Failed to install Ollama."
+        echo "[Ollama] FAILURE: Failed to download Ollama binary."
         exit 1
     fi
 else
     echo "[Ollama] SUCCESS: Ollama CLI is already available."
 fi
+
 
 
 # Tunnel uses SSH (pre-installed on all Kaggle instances) — no extra tools needed.
