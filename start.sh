@@ -75,6 +75,13 @@ else
 fi
 
 echo "=== Step 3: Checking System Utilities ==="
+# Ensure zstd is available (required by Ollama installer)
+if ! command -v zstd &> /dev/null; then
+    echo "[Deps] Installing zstd (required by Ollama installer)..."
+    apt-get install -y -q zstd > /dev/null 2>&1
+    echo "[Deps] SUCCESS: zstd installed."
+fi
+
 # Check Ollama
 if ! command -v ollama &> /dev/null; then
     echo "[Ollama] Installing Ollama..."
