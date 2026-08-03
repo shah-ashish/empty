@@ -36,25 +36,26 @@ def start_ssh_tunnel():
             with open(log_file, "r") as f:
                 content = f.read()
                 # Match any https URL containing 'pinggy' in the domain
-                match = re.search(
+                matches = re.finditer(
                     r'(https://[a-zA-Z0-9\-]+\.(?:[a-zA-Z0-9\-]+\.)*pinggy[a-zA-Z0-9\-]*\.[a-z]+)',
                     content
                 )
-                if match:
-                    url = match.group(1)
-                    TUNNEL_URL["value"] = url
+                for m in matches:
+                    url = m.group(1)
+                    if "dashboard.pinggy.io" not in url:
+                        TUNNEL_URL["value"] = url
 
-                    print("\n" + "=" * 70)
-                    print("[Tunnel] SUCCESS: PINGGY TUNNEL ESTABLISHED")
-                    print(f"BASE URL FOR CLAUDE CODE: {url}")
-                    print("=" * 70 + "\n")
-                    print("Run the following in PowerShell on your PC to connect Claude Code:")
-                    print(f'$env:ANTHROPIC_BASE_URL="{url}"')
-                    print(f'$env:ANTHROPIC_AUTH_TOKEN="sk-anything"')
-                    print(f'$env:ANTHROPIC_MODEL="{config.MODEL_NAME}"')
-                    print('$env:MAX_THINKING_TOKENS=4000')
-                    print('claude\n')
-                    return TUNNEL_URL
+                        print("\n" + "=" * 70)
+                        print("[Tunnel] SUCCESS: PINGGY TUNNEL ESTABLISHED")
+                        print(f"BASE URL FOR CLAUDE CODE: {url}")
+                        print("=" * 70 + "\n")
+                        print("Run the following in PowerShell on your PC to connect Claude Code:")
+                        print(f'$env:ANTHROPIC_BASE_URL="{url}"')
+                        print(f'$env:ANTHROPIC_AUTH_TOKEN="sk-anything"')
+                        print(f'$env:ANTHROPIC_MODEL="{config.MODEL_NAME}"')
+                        print('$env:MAX_THINKING_TOKENS=4000')
+                        print('claude\n')
+                        return TUNNEL_URL
         except FileNotFoundError:
             pass
 
