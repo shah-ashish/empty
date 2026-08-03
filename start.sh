@@ -78,8 +78,15 @@ echo "=== Step 3: Checking System Utilities ==="
 # Check Ollama
 if ! command -v ollama &> /dev/null; then
     echo "[Ollama] Downloading and installing Ollama (this may take a minute)..."
+
+    # Ensure zstd is available for extraction
+    if ! command -v zstd &> /dev/null; then
+        echo "[Ollama] Installing zstd..."
+        apt-get update -qq > /dev/null 2>&1
+        apt-get install -y -qq zstd > /dev/null 2>&1
+    fi
+
     OLLAMA_URL="https://github.com/ollama/ollama/releases/latest/download/ollama-linux-amd64.tar.zst"
-    # Use zstd | tar pipeline — avoids needing 'tar --zstd' flag (unsupported on Kaggle)
     if curl -fsSL "$OLLAMA_URL" | zstd -d | tar -x -C /usr/local/; then
         chmod +x /usr/local/bin/ollama
         echo "[Ollama] SUCCESS: Ollama installed successfully."
