@@ -1,5 +1,4 @@
 import subprocess
-import threading
 import re
 import time
 import config
@@ -7,54 +6,67 @@ import config
 TUNNEL_URL = {"value": None}
 
 def start_ssh_tunnel():
-    """Establishes a Pinggy reverse tunnel via SSH on port 443 (Kaggle-friendly)."""
+    """Establishes a Pinggy reverse tunnel via SSH on port 443 (Kaggle-friendly).
+    Uses log file + grep pattern (same proven approach as Local-Ai/cloudflared).
+    """
 
-    cmd = [
-        "ssh",
-        "-p", "443",
-        "-o", "StrictHostKeyChecking=no",
-        "-o", "ServerAliveInterval=30",
-        "-o", "ServerAliveCountMax=6",
-        "-R", f"0:localhost:{config.LOGGING_PROXY_PORT}",
-        "free.pinggy.io"
-    ]
+    log_file = "/tmp/pinggy_tunnel.log"
 
-    def run():
-        proc = subprocess.Popen(
-            cmd,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            text=True
-        )
-        for line in proc.stdout:
-            stripped = line.strip()
-            if not stripped:
-                continue
+    cmd = (
+        f"ssh -p 443 "
+        f"-o StrictHostKeyChecking=no "
+        f"-o UserKnownHostsFile=/dev/null "
+        f"-o ServerAliveInterval=30 "
+        f"-o ServerAliveCountMax=6 "
+        f"-R 0:localhost:{config.LOGGING_PROXY_PORT} "
+        f"free.pinggy.io"
+    )
 
-            # Pinggy prints both http and https URLs — capture the https one
-            match = re.search(r'(https://[a-zA-Z0-9\-]+\.a\.pinggy\.(link|online))', stripped)
-            if match and not TUNNEL_URL["value"]:
-                url = match.group(1)
-                TUNNEL_URL["value"] = url
+    # Launch SSH tunnel in background, redirect all output to log file
+    subprocess.Popen(
+        f"nohup {cmd} > {log_file} 2>&1 &",
+        shell=True,
+    )
 
-                print("\n" + "=" * 70)
-                print("[Tunnel] SUCCESS: PINGGY TUNNEL ESTABLISHED")
-                print(f"BASE URL FOR CLAUDE CODE: {url}")
-                print("=" * 70 + "\n")
-                print("Run the following in PowerShell on your PC to connect Claude Code:")
-                print(f'$env:ANTHROPIC_BASE_URL="{url}"')
-                print(f'$env:ANTHROPIC_AUTH_TOKEN="sk-anything"')
-                print(f'$env:ANTHROPIC_MODEL="{config.MODEL_NAME}"')
-                print('$env:MAX_THINKING_TOKENS=4000')
-                print('claude\n')
+    print("[Tunnel] Waiting for Pinggy tunnel URL...")
 
-    t = threading.Thread(target=run, daemon=True)
-    t.start()
+    # Poll log file for the URL (same pattern as cloudflared in Local-Ai)
+    for i in range(30):
+        try:
+            with open(log_file, "r") as f:
+                content = f.read()
+                # Match both .link and .online domains, and free subdomain patterns
+                match = re.search(
+                    r'(https://[a-zA-Z0-9\-]+\.a\.(?:free\.)?pinggy\.(?:link|online|io)(?::\d+)?)',
+                    content
+                )
+                if match:
+                    url = match.group(1)
+                    TUNNEL_URL["value"] = url
 
-    # Give Pinggy time to establish and print the URL
-    time.sleep(12)
+                    print("\n" + "=" * 70)
+                    print("[Tunnel] SUCCESS: PINGGY TUNNEL ESTABLISHED")
+                    print(f"BASE URL FOR CLAUDE CODE: {url}")
+                    print("=" * 70 + "\n")
+                    print("Run the following in PowerShell on your PC to connect Claude Code:")
+                    print(f'$env:ANTHROPIC_BASE_URL="{url}"')
+                    print(f'$env:ANTHROPIC_AUTH_TOKEN="sk-anything"')
+                    print(f'$env:ANTHROPIC_MODEL="{config.MODEL_NAME}"')
+                    print('$env:MAX_THINKING_TOKENS=4000')
+                    print('claude\n')
+                    return TUNNEL_URL
+        except FileNotFoundError:
+            pass
 
-    if not TUNNEL_URL["value"]:
-        print("[Tunnel] WARNING: Tunnel URL not received within 12s. Pinggy may be slow — check output above.")
+        time.sleep(1)
+
+    # If no URL found, dump the log for debugging
+    print("[Tunnel] WARNING: Tunnel URL not found within 30s.")
+    print("[Tunnel] Log file contents:")
+    try:
+        with open(log_file, "r") as f:
+            print(f.read())
+    except FileNotFoundError:
+        print("[Tunnel] Log file not created — SSH may have failed to start.")
 
     return TUNNEL_URL
