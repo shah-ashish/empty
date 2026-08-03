@@ -3,7 +3,7 @@ import os
 # ==============================================================================
 # SINGLE SOURCE OF TRUTH FOR MODEL NAME & CONFIG
 # ==============================================================================
-MODEL_NAME = "qwen3.5:9b"  # Change model here
+MODEL_NAME = "qwen3.6:27b"  # Change model here
 
 # Port Configurations
 OLLAMA_PORT = 11434

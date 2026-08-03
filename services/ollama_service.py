@@ -17,16 +17,16 @@ def start_ollama():
         env=env,
     )
 
-    # Health poll
-    for _ in range(30):
+    # Health poll — Ollama can be slow on first boot
+    for i in range(60):
         try:
-            requests.get(config.OLLAMA_BASE_URL, timeout=1)
+            requests.get(config.OLLAMA_BASE_URL, timeout=5)
             print("[Ollama] SUCCESS: Ollama server is up and responsive.")
             return ollama_proc
-        except requests.exceptions.ConnectionError:
+        except (requests.exceptions.ConnectionError, requests.exceptions.ReadTimeout, requests.exceptions.Timeout):
             time.sleep(1)
-            
-    raise RuntimeError("[Ollama] FAILURE: Ollama did not respond within 30 seconds.")
+
+    raise RuntimeError("[Ollama] FAILURE: Ollama did not respond within 60 seconds.")
 
 def ensure_model_pulled():
     """Pulls the configured model using Ollama CLI."""
